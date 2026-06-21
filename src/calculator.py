@@ -3,13 +3,16 @@ calculator.py: 四则运算核心 API 模块
 此模块提供基础的数学运算功能。
 """
 
+
 def add(a: float, b: float) -> float:
     """返回两个数字的和。"""
     return a + b
 
+
 def subtract(a: float, b: float) -> float:
     """返回第一个数字减去第二个数字的差。"""
     return a - b
+
 
 def divide(a: float, b: float) -> float:
     """
