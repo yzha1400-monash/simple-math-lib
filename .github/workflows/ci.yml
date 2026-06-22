@@ -26,9 +26,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: 安装项目依赖
-        run: |
-          pip install -r requirements.txt
-          pip install -e .   # 将当前项目以开发模式安装，解决模块导入问题
+  run: |
+    pip install -r requirements.txt
+    pip install black flake8 mypy pytest-cov   # 确保工具也被安装
 
       # 1. 自动格式化检查（如果格式不对，流水线直接标红）
       - name: Black 代码格式检查

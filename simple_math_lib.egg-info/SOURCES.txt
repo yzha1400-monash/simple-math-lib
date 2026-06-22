@@ -1,0 +1,7 @@
+README.md
+setup.py
+simple_math_lib.egg-info/PKG-INFO
+simple_math_lib.egg-info/SOURCES.txt
+simple_math_lib.egg-info/dependency_links.txt
+simple_math_lib.egg-info/top_level.txt
+tests/test_calculator.py
