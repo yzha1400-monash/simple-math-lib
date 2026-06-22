@@ -1,0 +1,85 @@
+name: 标准 CI/CD 流水线
+
+# 触发条件：每次推送到 main 或任何 feature 分支，以及发起 Pull Request 时
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # ========= 第一关：代码质量与单元测试（核心门禁） =========
+  lint-and-test:
+    name: 代码检查与测试
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10"]  # 同时测两个 Python 版本
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 安装项目依赖
+        run: |
+          pip install -r requirements.txt
+          pip install -e .   # 将当前项目以开发模式安装，解决模块导入问题
+
+      # 1. 自动格式化检查（如果格式不对，流水线直接标红）
+      - name: Black 代码格式检查
+        run: black --check src/ tests/
+
+      # 2. Lint 静态检查（找出潜在的坏味道）
+      - name: Flake8 代码风格检查
+        run: flake8 src/ --max-line-length=88 --ignore=E203,W503
+
+      # 3. 类型检查（抓出隐藏的类型错误）
+      - name: Mypy 类型检查
+        run: mypy src/ --ignore-missing-imports
+
+      # 4. 运行单元测试并生成覆盖率报告
+      - name: Pytest 单元测试与覆盖率
+        run: pytest --cov=src --cov-report=xml
+
+      # 5. （可选）上传覆盖率到 Codecov，如果没有 Codecov 账号，这步会自动跳过
+      - name: 上传覆盖率报告
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  # ========= 第二关：构建 Docker 镜像（只有第一关全绿才执行） =========
+  build-docker:
+    name: 构建并推送 Docker 镜像
+    needs: lint-and-test  # 必须等第一关通过
+    runs-on: ubuntu-latest
+    # 仅当推送到 main 主分支时才构建镜像（避免 feature 分支也构建）
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      # 登录到 GitHub 官方容器仓库（ghcr.io）
+      - name: 登录 GitHub 容器仓库
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 构建镜像并打上标签（latest 和本次提交的短哈希）
+      - name: 构建并推送镜像
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
