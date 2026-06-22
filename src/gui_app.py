@@ -1,12 +1,9 @@
 import sys
 import os
-
-# 把项目根目录加入 Python 路径，这样就能找到 src 包了
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import tkinter as tk
 from tkinter import messagebox
-from src.calculator import add, subtract, divide
+
+from src.calculator import add, divide
 
 
 class CalculatorGUI:
@@ -48,6 +45,7 @@ class CalculatorGUI:
 
 
 if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     root = tk.Tk()
     app = CalculatorGUI(root)
     root.mainloop()
