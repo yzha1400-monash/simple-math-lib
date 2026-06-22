@@ -3,10 +3,7 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 
-# 把路径设置放在所有 import 之前，并且不破坏 Flake8 规则
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# 只导入你实际使用到的函数（subtract 从未被使用，所以删掉它）
+# 注意：这里的路径处理会在 main 块里动态添加，而不是在模块顶层
 from src.calculator import add, divide
 
 
@@ -49,6 +46,9 @@ class CalculatorGUI:
 
 
 if __name__ == "__main__":
+    # 只有在直接运行脚本时，才把项目根目录加入 Python 路径
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     root = tk.Tk()
     app = CalculatorGUI(root)
     root.mainloop()
+    
